@@ -6,19 +6,19 @@ The Playwright setup established in Task 1 is shared with `docs/plans/selecionar
 
 ## Tasks
 
-### 1. Set up shared Playwright browser testing
+### 1. [x] Set up shared Playwright browser testing
 
 - **What:** Add the Playwright test runner, a repeatable npm test command, browser configuration, and a lightweight local static server so tests exercise the real frontend over HTTP. Add a smoke test that opens the app and confirms its core page loads. Keep test infrastructure shared with the multi-selection feature.
 - **Files:** Create or modify `package.json`, `package-lock.json`, `playwright.config.js`, `frontend/tests/server.js`, and `frontend/tests/smoke.spec.js`.
 - **Done check:** Run `npm ci`, `npx playwright install chromium`, and `npm test -- frontend/tests/smoke.spec.js`; the browser starts, loads `frontend/index.html` from the test server, and the smoke test passes.
 
-### 2. Add the versioned persistence adapter
+### 2. [x] Add the versioned persistence adapter
 
 - **What:** Create a browser-side adapter that reads and writes a deterministic `{ version, boards }` JSON snapshot under one namespaced localStorage key. Validate the schema; distinguish missing data from malformed JSON and schema-version mismatch. Catch unavailable/blocked localStorage and serialization/write errors so they do not crash the app. Persist board/task content only.
 - **Files:** Create `frontend/storage.js`; modify `frontend/index.html` to load it before `frontend/main.js`; create `frontend/tests/localstorage.spec.js` with storage-adapter behavior tests.
 - **Done check:** Run `npm test -- frontend/tests/localstorage.spec.js --grep "storage payload"`. Automated browser tests verify valid round-trip serialization, missing-key behavior, malformed JSON, invalid structure, version mismatch, and storage exceptions; invalid/inaccessible data produces a safe result without an uncaught page error.
 
-### 3. Establish canonical frontend state and startup restoration
+### 3. [x] Establish canonical frontend state and startup restoration
 
 - **What:** Replace board data stored only on DOM button properties with a canonical in-memory board collection. Load it through the adapter before rendering. Keep active-board, selected-task, and display-mode state transient, start with no board selected, and render restored boards for manual selection. Give boards and tasks stable IDs while preserving visible fields.
 - **Files:** Modify `frontend/main.js`; extend `frontend/tests/localstorage.spec.js` with startup and reload tests.
