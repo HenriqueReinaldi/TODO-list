@@ -43,3 +43,49 @@ test("storage payload handles valid writes and invalid data safely", async ({ pa
   expect(resultado.forma_invalida).toEqual({ version: 1, boards: [] });
   expect(erros_da_pagina).toEqual([]);
 });
+
+test("startup restores saved boards without auto-selection", async ({ page }) => {
+  await page.addInitScript(() => {
+    window.localStorage.setItem(
+      "todoAppState",
+      JSON.stringify({
+        version: 1,
+        boards: [
+          {
+            id: "board-1",
+            nome: "Trabalho",
+            lista_de_tarefas: [
+              {
+                id: "task-1",
+                nome: "Revisar código",
+                desc: "Checar testes",
+                status: "TODO",
+                categoria: "dev",
+                prioridade: 2,
+                data_termino: "",
+                alarmes: [],
+              },
+            ],
+          },
+        ],
+      })
+    );
+  });
+
+  await page.goto("/");
+
+  await expect(page.locator("#area-quadros button")).toHaveCount(1);
+  await expect(page.locator("#area-quadros button")).toHaveText("Trabalho");
+
+  const estado_inicial = await page.evaluate(() => ({
+    quadro_selecionado: !!window.quadro_selecionado,
+    tarefa_selecionada: !!window.tarefa_selecionada,
+    modo_listagem: window.modo_listagem,
+  }));
+
+  expect(estado_inicial).toEqual({
+    quadro_selecionado: false,
+    tarefa_selecionada: false,
+    modo_listagem: "L_STATUS",
+  });
+});
