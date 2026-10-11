@@ -42,7 +42,7 @@ The Playwright setup established in Task 1 is shared with `docs/plans/selecionar
 - **Files:** Modify `frontend/index.html` and `frontend/main.js`; extend `frontend/tests/localstorage.spec.js` with recovery/failure tests.
 - **Done check:** Run `npm test -- frontend/tests/localstorage.spec.js --grep "recovery warning"`. Tests seed corrupt and mismatched payloads and simulate blocked/throwing storage; they assert the warning is visible, the app remains usable, and the clean first-run state does not show a corruption warning.
 
-### 7. Run the shared persistence regression suite
+### 7. [x] Run the shared persistence regression suite
 
 - **What:** Complete the Playwright coverage for the persistence acceptance criteria and ensure it runs alongside the multi-selection spec using the same configuration and server. Do not add a separate manual-only HTML test harness.
 - **Files:** Update `frontend/tests/localstorage.spec.js` and shared test configuration only as needed.
