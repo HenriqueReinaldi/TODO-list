@@ -30,7 +30,7 @@ The Playwright setup established in Task 1 is shared with `docs/plans/selecionar
 - **Files:** Modify `frontend/main.js` and `frontend/index.html`; extend `frontend/tests/localstorage.spec.js` with board CRUD tests.
 - **Done check:** Run `npm test -- frontend/tests/localstorage.spec.js --grep "board CRUD"`. Tests perform each operation, inspect localStorage, reload to verify persistence, reject blank/duplicate names without changing state, and verify deleting the active board leaves no stale selection or task view.
 
-### 5. Persist task creation, editing, and deletion
+### 5. [x] Persist task creation, editing, and deletion
 
 - **What:** Save the containing board snapshot after task creation, editing, or deletion. Reject blank and duplicate task names within a board. Preserve status, category, priority, description, and alarm data; do not add an alarm when the alarm checkbox is unchecked.
 - **Files:** Modify `frontend/main.js`; extend `frontend/tests/localstorage.spec.js` with task CRUD tests.

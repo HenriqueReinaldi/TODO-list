@@ -126,3 +126,71 @@ test("startup restores saved boards without auto-selection", async ({ page }) =>
     modo_listagem: "L_STATUS",
   });
 });
+
+test("task CRUD persists valid actions and rejects invalid names", async ({ page }) => {
+  await page.goto("/");
+
+  await page.locator("#input-nome").fill("Trabalho");
+  await page.locator("#input-nome").press("Enter");
+  await page.locator("#area-quadros button").click();
+
+  await page.locator("#input-nome-tarefa").fill("Revisar PR");
+  await page.locator("#select-status").selectOption("TODO");
+  await page.locator("#input-categoria").fill("dev");
+  await page.locator("#input-prioridade").fill("3");
+  await page.locator("#input-descricao").fill("validar testes");
+  await page.locator("#btn-salvar-adicionar").click();
+
+  let payload = await page.evaluate(() => JSON.parse(window.localStorage.getItem("todoAppState")));
+  expect(payload.boards[0].lista_de_tarefas).toHaveLength(1);
+  expect(payload.boards[0].lista_de_tarefas[0].nome).toBe("Revisar PR");
+  expect(payload.boards[0].lista_de_tarefas[0].status).toBe("TODO");
+  expect(payload.boards[0].lista_de_tarefas[0].categoria).toBe("dev");
+  expect(payload.boards[0].lista_de_tarefas[0].prioridade).toBe(3);
+  expect(payload.boards[0].lista_de_tarefas[0].desc).toBe("validar testes");
+
+  await page.locator("#input-nome-tarefa").fill("Revisar PR");
+  await page.locator("#btn-salvar-adicionar").click();
+
+  payload = await page.evaluate(() => JSON.parse(window.localStorage.getItem("todoAppState")));
+  expect(payload.boards[0].lista_de_tarefas).toHaveLength(1);
+
+  await page.locator("#area-tarefas .temp-tarefa button").first().click();
+  await page.locator("#input-categoria").fill("qa");
+  await page.locator("#select-status").selectOption("DONE");
+  await page.locator("#input-descricao").fill("feito");
+  await page.locator("#btn-salvar-adicionar").click();
+
+  payload = await page.evaluate(() => JSON.parse(window.localStorage.getItem("todoAppState")));
+  expect(payload.boards[0].lista_de_tarefas[0].nome).toBe("Revisar PR");
+  expect(payload.boards[0].lista_de_tarefas[0].categoria).toBe("qa");
+  expect(payload.boards[0].lista_de_tarefas[0].status).toBe("DONE");
+  expect(payload.boards[0].lista_de_tarefas[0].desc).toBe("feito");
+
+  await page.locator("#input-nome-tarefa").fill("Revisar PR");
+  await page.locator("#btn-salvar-adicionar").click();
+
+  payload = await page.evaluate(() => JSON.parse(window.localStorage.getItem("todoAppState")));
+  expect(payload.boards[0].lista_de_tarefas).toHaveLength(1);
+
+  await page.evaluate(() => {
+    window.tarefa_selecionada = null;
+  });
+  await page.locator("#input-nome-tarefa").fill("Nova tarefa sem alarme");
+  await page.locator("#btn-salvar-adicionar").click();
+
+  payload = await page.evaluate(() => JSON.parse(window.localStorage.getItem("todoAppState")));
+  expect(payload.boards[0].lista_de_tarefas).toHaveLength(2);
+  expect(payload.boards[0].lista_de_tarefas[1].nome).toBe("Nova tarefa sem alarme");
+  expect(payload.boards[0].lista_de_tarefas[1].alarmes).toEqual([]);
+
+  await page.locator("#area-tarefas .temp-tarefa button").last().click();
+  await page.locator("#btn-deletar").click();
+
+  payload = await page.evaluate(() => JSON.parse(window.localStorage.getItem("todoAppState")));
+  expect(payload.boards[0].lista_de_tarefas).toHaveLength(1);
+
+  await page.reload();
+  payload = await page.evaluate(() => JSON.parse(window.localStorage.getItem("todoAppState")));
+  expect(payload.boards[0].lista_de_tarefas).toHaveLength(1);
+});

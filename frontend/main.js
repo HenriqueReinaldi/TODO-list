@@ -98,6 +98,10 @@ function normalizar_nome_quadro(nome) {
     return String(nome ?? "").trim();
 }
 
+function normalizar_nome_tarefa(nome) {
+    return String(nome ?? "").trim();
+}
+
 function nome_quadro_duplicado(nome, id_para_ignorar = null) {
     const nome_normalizado = normalizar_nome_quadro(nome).toLowerCase();
     if (nome_normalizado === "") {
@@ -108,6 +112,23 @@ function nome_quadro_duplicado(nome, id_para_ignorar = null) {
         const mesmo_id = id_para_ignorar && quadro.id === id_para_ignorar;
         if (mesmo_id) return false;
         return normalizar_nome_quadro(quadro.nome).toLowerCase() === nome_normalizado;
+    });
+}
+
+function nome_tarefa_duplicado(nome, id_para_ignorar = null) {
+    const nome_normalizado = normalizar_nome_tarefa(nome).toLowerCase();
+    if (nome_normalizado === "") {
+        return true;
+    }
+
+    if (!quadro_selecionado) {
+        return true;
+    }
+
+    return quadro_selecionado.lista_de_tarefas.some((tarefa) => {
+        const mesmo_id = id_para_ignorar && tarefa.id === id_para_ignorar;
+        if (mesmo_id) return false;
+        return normalizar_nome_tarefa(tarefa.nome).toLowerCase() === nome_normalizado;
     });
 }
 
@@ -321,11 +342,13 @@ btn_salvar_adicionar.addEventListener("click", _ => {
     let prioridade = parseInt(input_prioridade.value);
     let descricao = input_descricao.value;
     let alarme = input_alarme.value;
-    let nome = input_nome_tarefa.value.trim();
+    let nome = normalizar_nome_tarefa(input_nome_tarefa.value);
 
     let novo_alarme_check = check_sim_alarme.checked;
 
-    if (nome !== ""){
+    if (nome !== "") {
+        if (nome_tarefa_duplicado(nome)) return;
+
         let tarefa = nova_tarefa();
         tarefa.status = status;
         tarefa.categoria = categoria;
@@ -334,6 +357,9 @@ btn_salvar_adicionar.addEventListener("click", _ => {
         tarefa.nome = nome;
         if (novo_alarme_check && alarme !== "") tarefa.alarmes.push(alarme);
         quadro_selecionado.lista_de_tarefas.push(tarefa);
+        input_nome_tarefa.value = "";
+        check_sim_alarme.checked = false;
+        input_alarme.value = "";
         salvar_estado();
         mostrar_tarefas();
         return;
@@ -345,7 +371,13 @@ btn_salvar_adicionar.addEventListener("click", _ => {
     tarefa_selecionada.categoria = categoria;
     tarefa_selecionada.prioridade = prioridade;
     tarefa_selecionada.desc = descricao;
-    if (novo_alarme_check && alarme !== "") tarefa_selecionada.alarmes.push(alarme);
+    if (novo_alarme_check && alarme !== "" && !tarefa_selecionada.alarmes.includes(alarme)) {
+        tarefa_selecionada.alarmes.push(alarme);
+    }
+
+    input_nome_tarefa.value = "";
+    check_sim_alarme.checked = false;
+    input_alarme.value = "";
     salvar_estado();
     mostrar_tarefas();
 });
