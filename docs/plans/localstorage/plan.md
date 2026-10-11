@@ -24,7 +24,7 @@ The Playwright setup established in Task 1 is shared with `docs/plans/selecionar
 - **Files:** Modify `frontend/main.js`; extend `frontend/tests/localstorage.spec.js` with startup and reload tests.
 - **Done check:** Run `npm test -- frontend/tests/localstorage.spec.js --grep "startup restores"`. Tests cover a clean empty first run and valid saved data after reload, assert that no board is auto-selected, and verify selection/display mode are not restored.
 
-### 4. Persist board creation, rename, and deletion
+### 4. [x] Persist board creation, rename, and deletion
 
 - **What:** Save after successful board creation, rename, or deletion. Add minimal controls for rename/delete because these operations are required but not currently exposed. Reject blank and duplicate names before mutation or persistence using one documented normalization rule.
 - **Files:** Modify `frontend/main.js` and `frontend/index.html`; extend `frontend/tests/localstorage.spec.js` with board CRUD tests.

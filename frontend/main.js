@@ -1,5 +1,8 @@
 const input_nome_novo_quadro = document.getElementById("input-nome");
 const area_quadros = document.getElementById("area-quadros");
+const input_renomear_quadro = document.getElementById("input-renomear-quadro");
+const btn_renomear_quadro = document.getElementById("btn-renomear-quadro");
+const btn_deletar_quadro = document.getElementById("btn-deletar-quadro");
 
 //tarefas
 const area_tarefas = document.getElementById("area-tarefas");
@@ -91,6 +94,31 @@ function restaurar_estado() {
         : [];
 }
 
+function normalizar_nome_quadro(nome) {
+    return String(nome ?? "").trim();
+}
+
+function nome_quadro_duplicado(nome, id_para_ignorar = null) {
+    const nome_normalizado = normalizar_nome_quadro(nome).toLowerCase();
+    if (nome_normalizado === "") {
+        return true;
+    }
+
+    return quadros.some((quadro) => {
+        const mesmo_id = id_para_ignorar && quadro.id === id_para_ignorar;
+        if (mesmo_id) return false;
+        return normalizar_nome_quadro(quadro.nome).toLowerCase() === nome_normalizado;
+    });
+}
+
+function atualizar_controle_quadro() {
+    if (quadro_selecionado) {
+        input_renomear_quadro.value = quadro_selecionado.nome;
+    } else {
+        input_renomear_quadro.value = "";
+    }
+}
+
 function renderizar_quadros() {
     const botoes_atuais = area_quadros.querySelectorAll("button[data-quadro-id]");
     for (const botao of botoes_atuais) {
@@ -104,6 +132,8 @@ function renderizar_quadros() {
         botao.addEventListener("click", () => usar_quadro(quadro));
         area_quadros.appendChild(botao);
     }
+
+    atualizar_controle_quadro();
 }
 
 //INICIALIZACAO
@@ -119,6 +149,7 @@ function usar_quadro(quadro) {
     limpar_area_tarefas();
     quadro_selecionado = quadro;
     tarefa_selecionada = null;
+    atualizar_controle_quadro();
     mostrar_tarefas();
 }
 
@@ -249,8 +280,8 @@ function mostrar_tarefas(){
 //interacao com documento
 input_nome_novo_quadro.onkeydown = (e) => {
     if (e.key !== "Enter") return;
-    const nome = input_nome_novo_quadro.value.trim();
-    if (nome === "") return;
+    const nome = normalizar_nome_quadro(input_nome_novo_quadro.value);
+    if (nome === "" || nome_quadro_duplicado(nome)) return;
 
     const quadro = novo_quadro();
     quadro.nome = nome;
@@ -259,6 +290,28 @@ input_nome_novo_quadro.onkeydown = (e) => {
     renderizar_quadros();
     input_nome_novo_quadro.value = "";
 };
+
+btn_renomear_quadro.addEventListener("click", () => {
+    if (quadro_selecionado == null) return;
+
+    const nome = normalizar_nome_quadro(input_renomear_quadro.value);
+    if (nome === "" || nome_quadro_duplicado(nome, quadro_selecionado.id)) return;
+
+    quadro_selecionado.nome = nome;
+    salvar_estado();
+    renderizar_quadros();
+});
+
+btn_deletar_quadro.addEventListener("click", () => {
+    if (quadro_selecionado == null) return;
+
+    quadros = quadros.filter((quadro) => quadro.id !== quadro_selecionado.id);
+    quadro_selecionado = null;
+    tarefa_selecionada = null;
+    salvar_estado();
+    renderizar_quadros();
+    mostrar_tarefas();
+});
 
 btn_salvar_adicionar.addEventListener("click", _ => {
     if (quadro_selecionado == null) return;

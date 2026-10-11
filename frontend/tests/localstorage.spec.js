@@ -44,6 +44,43 @@ test("storage payload handles valid writes and invalid data safely", async ({ pa
   expect(erros_da_pagina).toEqual([]);
 });
 
+test("board CRUD persists valid actions and rejects invalid names", async ({ page }) => {
+  await page.goto("/");
+
+  const entrada_quadro = page.locator("#input-nome");
+  await entrada_quadro.fill("Trabalho");
+  await entrada_quadro.press("Enter");
+
+  await expect(page.locator("#area-quadros button")).toHaveCount(1);
+  await expect(page.locator("#area-quadros button")).toHaveText("Trabalho");
+
+  const payload_apos_criacao = await page.evaluate(() => JSON.parse(window.localStorage.getItem("todoAppState")));
+  expect(payload_apos_criacao.boards[0].nome).toBe("Trabalho");
+
+  await page.locator("#area-quadros button").click();
+  await page.locator("#input-renomear-quadro").fill("Financeiro");
+  await page.locator("#btn-renomear-quadro").click();
+
+  await expect(page.locator("#area-quadros button")).toHaveText("Financeiro");
+
+  const payload_apos_renomeacao = await page.evaluate(() => JSON.parse(window.localStorage.getItem("todoAppState")));
+  expect(payload_apos_renomeacao.boards[0].nome).toBe("Financeiro");
+
+  await entrada_quadro.fill("Financeiro");
+  await entrada_quadro.press("Enter");
+
+  await expect(page.locator("#area-quadros button")).toHaveCount(1);
+
+  await page.locator("#btn-deletar-quadro").click();
+  await expect(page.locator("#area-quadros button")).toHaveCount(0);
+
+  const payload_apos_remocao = await page.evaluate(() => JSON.parse(window.localStorage.getItem("todoAppState")));
+  expect(payload_apos_remocao.boards).toEqual([]);
+
+  await page.reload();
+  await expect(page.locator("#area-quadros button")).toHaveCount(0);
+});
+
 test("startup restores saved boards without auto-selection", async ({ page }) => {
   await page.addInitScript(() => {
     window.localStorage.setItem(
