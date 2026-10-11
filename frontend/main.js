@@ -1,3 +1,4 @@
+const warning_storage = document.getElementById("warning-storage");
 const input_nome_novo_quadro = document.getElementById("input-nome");
 const area_quadros = document.getElementById("area-quadros");
 const input_renomear_quadro = document.getElementById("input-renomear-quadro");
@@ -66,15 +67,51 @@ function normalizar_quadro(quadro) {
     };
 }
 
+function exibir_aviso_armazenamento(mensagem) {
+    if (!warning_storage) return;
+    warning_storage.textContent = mensagem;
+    warning_storage.hidden = false;
+}
+
+function ocultar_aviso_armazenamento() {
+    if (!warning_storage) return;
+    warning_storage.textContent = "";
+    warning_storage.hidden = true;
+}
+
+function mensagem_erro_armazenamento(reason) {
+    switch (reason) {
+        case "missing":
+            return null;
+        case "malformed-json":
+            return "Os dados salvos no navegador estão corrompidos e o app foi reiniciado com um estado limpo.";
+        case "version-mismatch":
+            return "A versão dos dados salvos é incompatível com esta interface e o app foi reiniciado com um estado limpo.";
+        case "invalid-structure":
+            return "Os dados salvos estão em um formato inválido e o app foi reiniciado com um estado limpo.";
+        case "unavailable":
+            return "O armazenamento do navegador está indisponível ou bloqueado, então o app continuou sem persistência.";
+        default:
+            return "Não foi possível carregar a persistência salva e o app foi reiniciado com um estado limpo.";
+    }
+}
+
 function salvar_estado() {
     if (!window.todo_storage || typeof window.todo_storage.write_state !== "function") {
         return;
     }
 
-    window.todo_storage.write_state({
+    const resultado = window.todo_storage.write_state({
         version: 1,
         boards: quadros.map(normalizar_quadro).filter(Boolean),
     });
+
+    if (resultado && resultado.ok === false) {
+        exibir_aviso_armazenamento("Não foi possível salvar o estado no navegador. O app continua em uso sem persistência.");
+        return;
+    }
+
+    ocultar_aviso_armazenamento();
 }
 
 function restaurar_estado() {
@@ -89,6 +126,15 @@ function restaurar_estado() {
 
     const estado = window.todo_storage.read_state();
     const dados = estado && estado.value ? estado.value : { version: 1, boards: [] };
+    const razao = estado && estado.reason ? estado.reason : "missing";
+
+    if (razao === "ok" || razao === "missing") {
+        ocultar_aviso_armazenamento();
+    } else {
+        const mensagem = mensagem_erro_armazenamento(razao);
+        if (mensagem) exibir_aviso_armazenamento(mensagem);
+    }
+
     quadros = Array.isArray(dados.boards)
         ? dados.boards.map(normalizar_quadro).filter(Boolean)
         : [];

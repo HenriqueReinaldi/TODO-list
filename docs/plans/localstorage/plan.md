@@ -36,7 +36,7 @@ The Playwright setup established in Task 1 is shared with `docs/plans/selecionar
 - **Files:** Modify `frontend/main.js`; extend `frontend/tests/localstorage.spec.js` with task CRUD tests.
 - **Done check:** Run `npm test -- frontend/tests/localstorage.spec.js --grep "task CRUD"`. Tests create, edit, and delete tasks; verify each stored payload and reload result; reject blank/duplicate names; and assert unchecked alarm creation does not add an alarm.
 
-### 6. Surface recovery and persistence warnings
+### 6. [x] Surface recovery and persistence warnings
 
 - **What:** Show a visible, non-blocking warning when stored data is malformed, has an incompatible version, or cannot be accessed/saved. Continue with safe in-memory state and no uncaught errors. Do not warn when storage is simply empty on first visit.
 - **Files:** Modify `frontend/index.html` and `frontend/main.js`; extend `frontend/tests/localstorage.spec.js` with recovery/failure tests.

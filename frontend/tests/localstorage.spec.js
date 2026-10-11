@@ -113,6 +113,7 @@ test("startup restores saved boards without auto-selection", async ({ page }) =>
 
   await expect(page.locator("#area-quadros button")).toHaveCount(1);
   await expect(page.locator("#area-quadros button")).toHaveText("Trabalho");
+  await expect(page.locator("#warning-storage")).toBeHidden();
 
   const estado_inicial = await page.evaluate(() => ({
     quadro_selecionado: !!window.quadro_selecionado,
@@ -125,6 +126,35 @@ test("startup restores saved boards without auto-selection", async ({ page }) =>
     tarefa_selecionada: false,
     modo_listagem: "L_STATUS",
   });
+});
+
+test("recovery warning shows for malformed data and blocked storage", async ({ page }) => {
+  await page.addInitScript(() => {
+    window.localStorage.setItem("todoAppState", "{ corrupt json");
+  });
+
+  await page.goto("/");
+
+  await expect(page.locator("#warning-storage")).toBeVisible();
+  await expect(page.locator("#warning-storage")).toContainText(/corromp|incompat|indispon/i);
+  await expect(page.locator("#area-quadros button")).toHaveCount(0);
+
+  await page.reload();
+
+  await page.addInitScript(() => {
+    Object.defineProperty(window, "localStorage", {
+      configurable: true,
+      get: () => {
+        throw new Error("blocked");
+      },
+    });
+  });
+
+  await page.goto("/");
+
+  await expect(page.locator("#warning-storage")).toBeVisible();
+  await expect(page.locator("#warning-storage")).toContainText(/indispon|bloque/i);
+  await expect(page.locator("#area-quadros button")).toHaveCount(0);
 });
 
 test("task CRUD persists valid actions and rejects invalid names", async ({ page }) => {
