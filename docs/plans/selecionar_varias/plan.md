@@ -18,7 +18,7 @@ Use the shared Playwright setup, server, and `npm test` command defined in `docs
 - **Files:** Modify `frontend/main.js` and `frontend/style.css`; extend `frontend/tests/multiselect.spec.js` with modifier-interaction and highlight checks.
 - **Done check:** Run `npm test -- frontend/tests/multiselect.spec.js --grep "modifier selection"`. Playwright verifies plain-click selects only one task, modifier-click adds and toggles tasks, and all/only selected tasks have the blue highlight after changing display modes.
 
-### 3. Make the editor reflect zero, one, and multiple selections
+### 3. [x] Make the editor reflect zero, one, and multiple selections
 
 - **What:** Define editor state for each selection count. With no selection, clear/reset the editor and prevent task updates. With one selected task, populate its fields and keep its name read-only or otherwise excluded from editing. With multiple tasks, show neutral values and a concise multi-edit message; disable or hide name, description, alarm, and alarm-creation controls while leaving status, category, and priority available.
 - **Files:** Modify `frontend/main.js` and `frontend/index.html`; extend `frontend/tests/multiselect.spec.js` with editor-mode checks.

@@ -197,15 +197,15 @@ test("task CRUD persists valid actions and rejects invalid names", async ({ page
   expect(payload.boards[0].lista_de_tarefas[0].status).toBe("DONE");
   expect(payload.boards[0].lista_de_tarefas[0].desc).toBe("feito");
 
+  await page.evaluate(() => {
+    limpar_selecao();
+  });
   await page.locator("#input-nome-tarefa").fill("Revisar PR");
   await page.locator("#btn-salvar-adicionar").click();
 
   payload = await page.evaluate(() => JSON.parse(window.localStorage.getItem("todoAppState")));
   expect(payload.boards[0].lista_de_tarefas).toHaveLength(1);
 
-  await page.evaluate(() => {
-    window.tarefa_selecionada = null;
-  });
   await page.locator("#input-nome-tarefa").fill("Nova tarefa sem alarme");
   await page.locator("#btn-salvar-adicionar").click();
 

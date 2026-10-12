@@ -17,6 +17,7 @@ const input_prioridade = document.getElementById("input-prioridade");
 const input_descricao = document.getElementById("input-descricao");
 const input_alarme = document.getElementById("input-alarme");
 const check_sim_alarme = document.getElementById("check-sim-alarme");
+const mensagem_edicao = document.getElementById("mensagem-edicao");
 
 //config
 const config_select_display = document.getElementById("select-display");
@@ -210,6 +211,7 @@ function init() {
     restaurar_estado();
     renderizar_quadros();
     mostrar_tarefas();
+    atualizar_estado_formulario();
 }
 init();
 
@@ -219,6 +221,7 @@ function usar_quadro(quadro) {
     limpar_selecao();
     atualizar_controle_quadro();
     mostrar_tarefas();
+    atualizar_estado_formulario();
 }
 
 function novo_quadro(){
@@ -264,22 +267,8 @@ function criar_tarefa_btn(t){
         }
 
         tarefa_selecionada = tarefas_selecionadas.length === 1 ? tarefas_selecionadas[0] : null;
-
-        if (tarefa_selecionada != null) {
-            select_status.value = tarefa_selecionada.status;
-            input_categoria.value = tarefa_selecionada.categoria;
-            input_prioridade.value = tarefa_selecionada.prioridade;
-            input_descricao.value = tarefa_selecionada.desc;
-            input_nome_tarefa.value = "";
-        } else {
-            select_status.value = "TODO";
-            input_categoria.value = "";
-            input_prioridade.value = "1";
-            input_descricao.value = "";
-            input_nome_tarefa.value = "";
-        }
-
         mostrar_tarefas();
+        atualizar_estado_formulario();
     });
     tarefa_btn.innerHTML = t.nome;
 
@@ -406,6 +395,7 @@ btn_deletar_quadro.addEventListener("click", () => {
 
 btn_salvar_adicionar.addEventListener("click", _ => {
     if (quadro_selecionado == null) return;
+    if (contar_selecionadas() > 1) return;
 
     let status = select_status.value;
     let categoria = input_categoria.value;
@@ -454,7 +444,7 @@ btn_salvar_adicionar.addEventListener("click", _ => {
 
 btn_deletar.addEventListener("click", _ => {
     if (quadro_selecionado == null) return;
-    if (tarefa_selecionada == null) return;
+    if (contar_selecionadas() !== 1) return;
 
     let pos = quadro_selecionado.lista_de_tarefas.indexOf(tarefa_selecionada);
     if (pos >= 0){
@@ -463,6 +453,7 @@ btn_deletar.addEventListener("click", _ => {
     limpar_selecao();
     salvar_estado();
     mostrar_tarefas();
+    atualizar_estado_formulario();
 })
 
 config_select_display.onchange = ev => {
@@ -473,6 +464,66 @@ config_select_display.onchange = ev => {
 //================
 
 //selection helpers
+function atualizar_estado_formulario() {
+    const quantidade = contar_selecionadas();
+    const tarefa_unica = quantidade === 1 ? tarefas_selecionadas[0] : null;
+    const edicao_em_lote = quantidade > 1;
+
+    if (mensagem_edicao) {
+        mensagem_edicao.hidden = !edicao_em_lote;
+    }
+
+    if (quantidade === 0) {
+        input_nome_tarefa.disabled = false;
+        input_nome_tarefa.value = "";
+        select_status.disabled = false;
+        select_status.value = "TODO";
+        input_categoria.disabled = false;
+        input_categoria.value = "";
+        input_prioridade.disabled = false;
+        input_prioridade.value = "1";
+        input_descricao.disabled = false;
+        input_descricao.value = "";
+        input_alarme.disabled = false;
+        input_alarme.value = "";
+        check_sim_alarme.disabled = false;
+        check_sim_alarme.checked = false;
+        return;
+    }
+
+    if (quantidade === 1) {
+        input_nome_tarefa.disabled = true;
+        input_nome_tarefa.value = "";
+        select_status.disabled = false;
+        select_status.value = tarefa_unica.status || "TODO";
+        input_categoria.disabled = false;
+        input_categoria.value = tarefa_unica.categoria || "";
+        input_prioridade.disabled = false;
+        input_prioridade.value = String(tarefa_unica.prioridade || 1);
+        input_descricao.disabled = false;
+        input_descricao.value = tarefa_unica.desc || "";
+        input_alarme.disabled = false;
+        input_alarme.value = "";
+        check_sim_alarme.disabled = false;
+        check_sim_alarme.checked = false;
+        return;
+    }
+
+    input_nome_tarefa.disabled = true;
+    input_nome_tarefa.value = "";
+    select_status.disabled = false;
+    select_status.value = "TODO";
+    input_categoria.disabled = false;
+    input_categoria.value = "";
+    input_prioridade.disabled = false;
+    input_prioridade.value = "1";
+    input_descricao.disabled = true;
+    input_descricao.value = "";
+    input_alarme.disabled = true;
+    input_alarme.value = "";
+    check_sim_alarme.disabled = true;
+    check_sim_alarme.checked = false;
+}
 function selecionar_tarefa(t) {
     if (!t) {
         return;
@@ -487,6 +538,7 @@ function selecionar_tarefa(t) {
     }
 
     tarefa_selecionada = tarefas_selecionadas.length === 1 ? tarefas_selecionadas[0] : null;
+    atualizar_estado_formulario();
 }
 function alternar_selecao_tarefa(t) {
     if (!t) {
@@ -505,10 +557,12 @@ function alternar_selecao_tarefa(t) {
     }
 
     tarefa_selecionada = tarefas_selecionadas.length === 1 ? tarefas_selecionadas[0] : null;
+    atualizar_estado_formulario();
 }
 function limpar_selecao() {
     tarefas_selecionadas = [];
     tarefa_selecionada = null;
+    atualizar_estado_formulario();
 }
 function contar_selecionadas() {
     return tarefas_selecionadas.length;
