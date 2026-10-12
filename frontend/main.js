@@ -261,6 +261,8 @@ function criar_tarefa_btn(t){
 
         if (com_modificador) {
             alternar_selecao_tarefa(t);
+        } else if (tarefas_selecionadas.includes(t)) {
+            alternar_selecao_tarefa(t);
         } else {
             limpar_selecao();
             selecionar_tarefa(t);

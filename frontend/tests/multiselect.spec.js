@@ -48,6 +48,10 @@ test("modifier selection toggles tasks and shows a selected highlight", async ({
 
   await taskButtons.nth(1).click({ modifiers: ["Control"] });
   await expect(page.locator(".tarefa-selecionada")).toHaveCount(1);
+
+  await taskButtons.nth(0).click();
+  await expect(page.locator(".tarefa-selecionada")).toHaveCount(0);
+  expect(await page.evaluate(() => contar_selecionadas())).toBe(0);
 });
 
 test("editor modes reflect zero, one, and multiple selections", async ({ page }) => {
