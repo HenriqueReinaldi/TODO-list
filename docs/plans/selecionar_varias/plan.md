@@ -12,7 +12,7 @@ Use the shared Playwright setup, server, and `npm test` command defined in `docs
 - **Files:** Modify `frontend/main.js`; create `frontend/tests/multiselect.spec.js` with selection-state tests.
 - **Done check:** Run `npm test -- frontend/tests/multiselect.spec.js --grep "selection state"`. Playwright selects tasks, changes display modes, switches boards, and deletes a selected task; assertions verify no stale selection remains and valid selection survives re-rendering.
 
-### 2. Add modifier-based selection and visual feedback
+### 2. [x] Add modifier-based selection and visual feedback
 
 - **What:** Make task buttons support plain-click single selection and Control-click/Command-click add-or-remove selection. Apply a selected class or attribute to every rendered button whose task is selected, including after re-rendering. Keep selection scoped to the active board.
 - **Files:** Modify `frontend/main.js` and `frontend/style.css`; extend `frontend/tests/multiselect.spec.js` with modifier-interaction and highlight checks.

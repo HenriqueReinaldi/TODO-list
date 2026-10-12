@@ -27,6 +27,7 @@ const template_container = document.getElementById("template-container");
 //status
 var modo_listagem = "L_STATUS";
 var tarefas_selecionadas = [];
+var tarefa_selecionada = null;
 var quadro_selecionado = null;
 var quadros = [];
 
@@ -215,7 +216,7 @@ init();
 function usar_quadro(quadro) {
     limpar_area_tarefas();
     quadro_selecionado = quadro;
-    tarefa_selecionada = null;
+    limpar_selecao();
     atualizar_controle_quadro();
     mostrar_tarefas();
 }
@@ -249,13 +250,36 @@ function nova_tarefa(){
 
 function criar_tarefa_btn(t){
     let tarefa_btn = document.createElement("button");
-    tarefa_btn.addEventListener("click", () => {
-        tarefa_selecionada = t;
-        select_status.value = t.status;
-        input_categoria.value = t.categoria;
-        input_prioridade.value = t.prioridade;
-        input_descricao.value = t.desc;
-        input_nome_tarefa.value = "";
+    tarefa_btn.type = "button";
+    tarefa_btn.dataset.tarefaId = t.id;
+    tarefa_btn.classList.toggle("tarefa-selecionada", tarefas_selecionadas.includes(t));
+    tarefa_btn.addEventListener("click", (event) => {
+        const com_modificador = event.ctrlKey || event.metaKey;
+
+        if (com_modificador) {
+            alternar_selecao_tarefa(t);
+        } else {
+            limpar_selecao();
+            selecionar_tarefa(t);
+        }
+
+        tarefa_selecionada = tarefas_selecionadas.length === 1 ? tarefas_selecionadas[0] : null;
+
+        if (tarefa_selecionada != null) {
+            select_status.value = tarefa_selecionada.status;
+            input_categoria.value = tarefa_selecionada.categoria;
+            input_prioridade.value = tarefa_selecionada.prioridade;
+            input_descricao.value = tarefa_selecionada.desc;
+            input_nome_tarefa.value = "";
+        } else {
+            select_status.value = "TODO";
+            input_categoria.value = "";
+            input_prioridade.value = "1";
+            input_descricao.value = "";
+            input_nome_tarefa.value = "";
+        }
+
+        mostrar_tarefas();
     });
     tarefa_btn.innerHTML = t.nome;
 
@@ -374,7 +398,7 @@ btn_deletar_quadro.addEventListener("click", () => {
 
     quadros = quadros.filter((quadro) => quadro.id !== quadro_selecionado.id);
     quadro_selecionado = null;
-    tarefa_selecionada = null;
+    limpar_selecao();
     salvar_estado();
     renderizar_quadros();
     mostrar_tarefas();
@@ -436,7 +460,7 @@ btn_deletar.addEventListener("click", _ => {
     if (pos >= 0){
         quadro_selecionado.lista_de_tarefas.splice(pos, 1);
     }
-    tarefa_selecionada = null;
+    limpar_selecao();
     salvar_estado();
     mostrar_tarefas();
 })
@@ -450,20 +474,41 @@ config_select_display.onchange = ev => {
 
 //selection helpers
 function selecionar_tarefa(t) {
+    if (!t) {
+        return;
+    }
+
+    if (quadro_selecionado && !quadro_selecionado.lista_de_tarefas.includes(t)) {
+        return;
+    }
+
     if (!tarefas_selecionadas.includes(t)) {
         tarefas_selecionadas.push(t);
     }
+
+    tarefa_selecionada = tarefas_selecionadas.length === 1 ? tarefas_selecionadas[0] : null;
 }
 function alternar_selecao_tarefa(t) {
+    if (!t) {
+        return;
+    }
+
+    if (quadro_selecionado && !quadro_selecionado.lista_de_tarefas.includes(t)) {
+        return;
+    }
+
     const idx = tarefas_selecionadas.indexOf(t);
     if (idx >= 0) {
         tarefas_selecionadas.splice(idx, 1);
     } else {
         tarefas_selecionadas.push(t);
     }
+
+    tarefa_selecionada = tarefas_selecionadas.length === 1 ? tarefas_selecionadas[0] : null;
 }
 function limpar_selecao() {
     tarefas_selecionadas = [];
+    tarefa_selecionada = null;
 }
 function contar_selecionadas() {
     return tarefas_selecionadas.length;
