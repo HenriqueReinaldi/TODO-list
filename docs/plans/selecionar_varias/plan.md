@@ -30,7 +30,7 @@ Use the shared Playwright setup, server, and `npm test` command defined in `docs
 - **Files:** Modify `frontend/main.js` and, if needed, `frontend/index.html`; extend `frontend/tests/multiselect.spec.js` with bulk-edit and single-edit tests.
 - **Done check:** Run `npm test -- frontend/tests/multiselect.spec.js --grep "bulk editing"`. Playwright starts with mixed selected-task values, changes each supported field, verifies the UI remains dirty until Save is clicked, and confirms all selected tasks update together only after the Save action. It verifies unsupported fields do not mutate tasks and single-task Save affects only that task.
 
-### 5. Verify selection clearing and regression behavior
+### 5. [x] Verify selection clearing and regression behavior
 
 - **What:** Add automated regression coverage for clearing selection and for task creation, single-task editing, deletion, and status/priority/category display modes. Keep tests in the shared Playwright suite; do not rely on a manual-only browser pass.
 - **Files:** Extend `frontend/tests/multiselect.spec.js`; fix any discovered frontend issues only in `frontend/main.js`, `frontend/index.html`, or `frontend/style.css`.

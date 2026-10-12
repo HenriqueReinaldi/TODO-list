@@ -29,16 +29,17 @@ When exactly one task is selected:
 ### Multi-selection editing rules
 When more than one task is selected:
 - the user may only edit category, priority, and status;
-- the edited value must be applied to every selected task immediately;
+- changes to category, priority, and status are staged in the form and must not modify tasks until the user clicks Save;
+- when Save is clicked, the staged values are applied to every selected task;
 - the description and alarm fields must not be editable in bulk mode;
 - the task name must remain unchanged for all selected tasks;
 - the bulk-edit form should show a neutral blank state and a small message indicating that multiple tasks are being edited at once.
 
 ### Save behavior
-- Any update applied to selected tasks must be committed immediately to the in-memory model.
-- The frontend should reflect the new state visually after the update is applied.
-- The application should keep the selection state valid after applying bulk edits.
-- After a bulk update, the selected tasks remain selected so the user can continue applying further changes in the same session.
+- Bulk field changes remain pending in the form until the user clicks Save; changing a field alone must not modify the selected tasks.
+- On Save, apply the staged category, priority, and status values to every selected task, then reflect the updates in the task list.
+- Keep the selection state valid after saving, and retain the selected tasks so the user can continue editing them.
+- Clearing or changing the selection before saving discards pending bulk changes and resets the form for the new selection.
 
 ### Edge cases
 - Zero tasks selected: the form should be in a neutral state and no editing should be applied.
@@ -62,7 +63,7 @@ When more than one task is selected:
 1. The user can select more than one task at the same time using the browser interaction defined for multi-selection.
 2. When exactly one task is selected, the app exposes all editable fields except the name field.
 3. When multiple tasks are selected, the app exposes only category, priority, and status fields for editing.
-4. Changing category, priority, or status while multiple tasks are selected applies the same value to all selected tasks immediately.
+4. Changing category, priority, or status while multiple tasks are selected stages the values in the form; clicking Save applies those values to all selected tasks.
 5. Changing description, alarm data, or name while multiple tasks are selected is not allowed.
 6. When only one task is selected, the name field remains read-only or otherwise excluded from editing.
 7. The app updates the task list visually after bulk edits are applied.
@@ -126,6 +127,6 @@ These decisions are now fixed for implementation:
 - Multi-selection is performed with click + Control/Cmd interactions.
 - Selected tasks receive a simple blue highlight to indicate active selection.
 - When multiple tasks are selected, the form shows a neutral blank state and indicates that multiple tasks are being edited.
-- Bulk edits are applied immediately, without a separate Save action.
+- Bulk edits to category, priority, and status are applied to all selected tasks only when the user clicks Save.
 - After applying a bulk update, the same tasks remain selected so the user can continue editing them.
 - The feature is frontend-only and does not affect the Java CLI project.
