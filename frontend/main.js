@@ -17,6 +17,7 @@ const input_prioridade = document.getElementById("input-prioridade");
 const input_descricao = document.getElementById("input-descricao");
 const input_alarme = document.getElementById("input-alarme");
 const check_sim_alarme = document.getElementById("check-sim-alarme");
+const mensagem_edicao = document.getElementById("mensagem-edicao");
 
 //config
 const config_select_display = document.getElementById("select-display");
@@ -26,6 +27,7 @@ const template_container = document.getElementById("template-container");
 
 //status
 var modo_listagem = "L_STATUS";
+var tarefas_selecionadas = [];
 var tarefa_selecionada = null;
 var quadro_selecionado = null;
 var quadros = [];
@@ -209,15 +211,17 @@ function init() {
     restaurar_estado();
     renderizar_quadros();
     mostrar_tarefas();
+    atualizar_estado_formulario();
 }
 init();
 
 function usar_quadro(quadro) {
     limpar_area_tarefas();
     quadro_selecionado = quadro;
-    tarefa_selecionada = null;
+    limpar_selecao();
     atualizar_controle_quadro();
     mostrar_tarefas();
+    atualizar_estado_formulario();
 }
 
 function novo_quadro(){
@@ -249,13 +253,24 @@ function nova_tarefa(){
 
 function criar_tarefa_btn(t){
     let tarefa_btn = document.createElement("button");
-    tarefa_btn.addEventListener("click", () => {
-        tarefa_selecionada = t;
-        select_status.value = t.status;
-        input_categoria.value = t.categoria;
-        input_prioridade.value = t.prioridade;
-        input_descricao.value = t.desc;
-        input_nome_tarefa.value = "";
+    tarefa_btn.type = "button";
+    tarefa_btn.dataset.tarefaId = t.id;
+    tarefa_btn.classList.toggle("tarefa-selecionada", tarefas_selecionadas.includes(t));
+    tarefa_btn.addEventListener("click", (event) => {
+        const com_modificador = event.ctrlKey || event.metaKey;
+
+        if (com_modificador) {
+            alternar_selecao_tarefa(t);
+        } else if (tarefas_selecionadas.includes(t)) {
+            alternar_selecao_tarefa(t);
+        } else {
+            limpar_selecao();
+            selecionar_tarefa(t);
+        }
+
+        tarefa_selecionada = tarefas_selecionadas.length === 1 ? tarefas_selecionadas[0] : null;
+        mostrar_tarefas();
+        atualizar_estado_formulario();
     });
     tarefa_btn.innerHTML = t.nome;
 
@@ -374,7 +389,7 @@ btn_deletar_quadro.addEventListener("click", () => {
 
     quadros = quadros.filter((quadro) => quadro.id !== quadro_selecionado.id);
     quadro_selecionado = null;
-    tarefa_selecionada = null;
+    limpar_selecao();
     salvar_estado();
     renderizar_quadros();
     mostrar_tarefas();
@@ -383,14 +398,33 @@ btn_deletar_quadro.addEventListener("click", () => {
 btn_salvar_adicionar.addEventListener("click", _ => {
     if (quadro_selecionado == null) return;
 
-    let status = select_status.value;
-    let categoria = input_categoria.value;
-    let prioridade = parseInt(input_prioridade.value);
-    let descricao = input_descricao.value;
-    let alarme = input_alarme.value;
-    let nome = normalizar_nome_tarefa(input_nome_tarefa.value);
+    const quantidade = contar_selecionadas();
+    const status = select_status.value;
+    const categoria = input_categoria.value;
+    const prioridade = parseInt(input_prioridade.value, 10);
+    const descricao = input_descricao.value;
+    const alarme = input_alarme.value;
+    const nome = normalizar_nome_tarefa(input_nome_tarefa.value);
+    const novo_alarme_check = check_sim_alarme.checked;
 
-    let novo_alarme_check = check_sim_alarme.checked;
+    if (quantidade > 1) {
+        const valores_validos = Number.isInteger(prioridade) && prioridade >= 1 && prioridade <= 5;
+        if (!valores_validos) return;
+
+        for (const tarefa of tarefas_selecionadas) {
+            tarefa.status = status;
+            tarefa.categoria = categoria;
+            tarefa.prioridade = prioridade;
+        }
+
+        input_nome_tarefa.value = "";
+        check_sim_alarme.checked = false;
+        input_alarme.value = "";
+        salvar_estado();
+        mostrar_tarefas();
+        atualizar_estado_formulario();
+        return;
+    }
 
     if (nome !== "") {
         if (nome_tarefa_duplicado(nome)) return;
@@ -430,15 +464,16 @@ btn_salvar_adicionar.addEventListener("click", _ => {
 
 btn_deletar.addEventListener("click", _ => {
     if (quadro_selecionado == null) return;
-    if (tarefa_selecionada == null) return;
+    if (contar_selecionadas() !== 1) return;
 
     let pos = quadro_selecionado.lista_de_tarefas.indexOf(tarefa_selecionada);
     if (pos >= 0){
         quadro_selecionado.lista_de_tarefas.splice(pos, 1);
     }
-    tarefa_selecionada = null;
+    limpar_selecao();
     salvar_estado();
     mostrar_tarefas();
+    atualizar_estado_formulario();
 })
 
 config_select_display.onchange = ev => {
@@ -447,3 +482,108 @@ config_select_display.onchange = ev => {
 };
 
 //================
+
+//selection helpers
+function atualizar_estado_formulario() {
+    const quantidade = contar_selecionadas();
+    const tarefa_unica = quantidade === 1 ? tarefas_selecionadas[0] : null;
+    const edicao_em_lote = quantidade > 1;
+
+    if (mensagem_edicao) {
+        mensagem_edicao.hidden = !edicao_em_lote;
+    }
+
+    if (quantidade === 0) {
+        input_nome_tarefa.disabled = false;
+        input_nome_tarefa.value = "";
+        select_status.disabled = false;
+        select_status.value = "TODO";
+        input_categoria.disabled = false;
+        input_categoria.value = "";
+        input_prioridade.disabled = false;
+        input_prioridade.value = "1";
+        input_descricao.disabled = false;
+        input_descricao.value = "";
+        input_alarme.disabled = false;
+        input_alarme.value = "";
+        check_sim_alarme.disabled = false;
+        check_sim_alarme.checked = false;
+        return;
+    }
+
+    if (quantidade === 1) {
+        input_nome_tarefa.disabled = true;
+        input_nome_tarefa.value = "";
+        select_status.disabled = false;
+        select_status.value = tarefa_unica.status || "TODO";
+        input_categoria.disabled = false;
+        input_categoria.value = tarefa_unica.categoria || "";
+        input_prioridade.disabled = false;
+        input_prioridade.value = String(tarefa_unica.prioridade || 1);
+        input_descricao.disabled = false;
+        input_descricao.value = tarefa_unica.desc || "";
+        input_alarme.disabled = false;
+        input_alarme.value = "";
+        check_sim_alarme.disabled = false;
+        check_sim_alarme.checked = false;
+        return;
+    }
+
+    input_nome_tarefa.disabled = true;
+    input_nome_tarefa.value = "";
+    select_status.disabled = false;
+    select_status.value = "TODO";
+    input_categoria.disabled = false;
+    input_categoria.value = "";
+    input_prioridade.disabled = false;
+    input_prioridade.value = "1";
+    input_descricao.disabled = true;
+    input_descricao.value = "";
+    input_alarme.disabled = true;
+    input_alarme.value = "";
+    check_sim_alarme.disabled = true;
+    check_sim_alarme.checked = false;
+}
+function selecionar_tarefa(t) {
+    if (!t) {
+        return;
+    }
+
+    if (quadro_selecionado && !quadro_selecionado.lista_de_tarefas.includes(t)) {
+        return;
+    }
+
+    if (!tarefas_selecionadas.includes(t)) {
+        tarefas_selecionadas.push(t);
+    }
+
+    tarefa_selecionada = tarefas_selecionadas.length === 1 ? tarefas_selecionadas[0] : null;
+    atualizar_estado_formulario();
+}
+function alternar_selecao_tarefa(t) {
+    if (!t) {
+        return;
+    }
+
+    if (quadro_selecionado && !quadro_selecionado.lista_de_tarefas.includes(t)) {
+        return;
+    }
+
+    const idx = tarefas_selecionadas.indexOf(t);
+    if (idx >= 0) {
+        tarefas_selecionadas.splice(idx, 1);
+    } else {
+        tarefas_selecionadas.push(t);
+    }
+
+    tarefa_selecionada = tarefas_selecionadas.length === 1 ? tarefas_selecionadas[0] : null;
+    atualizar_estado_formulario();
+}
+function limpar_selecao() {
+    tarefas_selecionadas = [];
+    tarefa_selecionada = null;
+    atualizar_estado_formulario();
+}
+function contar_selecionadas() {
+    return tarefas_selecionadas.length;
+}
