@@ -26,7 +26,7 @@ const template_container = document.getElementById("template-container");
 
 //status
 var modo_listagem = "L_STATUS";
-var tarefa_selecionada = null;
+var tarefas_selecionadas = [];
 var quadro_selecionado = null;
 var quadros = [];
 
@@ -447,3 +447,24 @@ config_select_display.onchange = ev => {
 };
 
 //================
+
+//selection helpers
+function selecionar_tarefa(t) {
+    if (!tarefas_selecionadas.includes(t)) {
+        tarefas_selecionadas.push(t);
+    }
+}
+function alternar_selecao_tarefa(t) {
+    const idx = tarefas_selecionadas.indexOf(t);
+    if (idx >= 0) {
+        tarefas_selecionadas.splice(idx, 1);
+    } else {
+        tarefas_selecionadas.push(t);
+    }
+}
+function limpar_selecao() {
+    tarefas_selecionadas = [];
+}
+function contar_selecionadas() {
+    return tarefas_selecionadas.length;
+}

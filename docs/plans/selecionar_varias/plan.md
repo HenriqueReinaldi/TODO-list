@@ -6,7 +6,7 @@ Use the shared Playwright setup, server, and `npm test` command defined in `docs
 
 ## Tasks
 
-### 1. Replace the single-task reference with selection state
+### 1. [x] Replace the single-task reference with selection state
 
 - **What:** Replace the single `tarefa_selecionada` value with a collection of selected task references. Add small helpers to set, toggle, clear, and count the current selection. Clear selection when switching boards or when selected tasks are deleted; keep references valid when the task list is re-rendered or regrouped.
 - **Files:** Modify `frontend/main.js`; create `frontend/tests/multiselect.spec.js` with selection-state tests.
