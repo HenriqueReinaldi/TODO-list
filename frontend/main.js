@@ -395,16 +395,34 @@ btn_deletar_quadro.addEventListener("click", () => {
 
 btn_salvar_adicionar.addEventListener("click", _ => {
     if (quadro_selecionado == null) return;
-    if (contar_selecionadas() > 1) return;
 
-    let status = select_status.value;
-    let categoria = input_categoria.value;
-    let prioridade = parseInt(input_prioridade.value);
-    let descricao = input_descricao.value;
-    let alarme = input_alarme.value;
-    let nome = normalizar_nome_tarefa(input_nome_tarefa.value);
+    const quantidade = contar_selecionadas();
+    const status = select_status.value;
+    const categoria = input_categoria.value;
+    const prioridade = parseInt(input_prioridade.value, 10);
+    const descricao = input_descricao.value;
+    const alarme = input_alarme.value;
+    const nome = normalizar_nome_tarefa(input_nome_tarefa.value);
+    const novo_alarme_check = check_sim_alarme.checked;
 
-    let novo_alarme_check = check_sim_alarme.checked;
+    if (quantidade > 1) {
+        const valores_validos = Number.isInteger(prioridade) && prioridade >= 1 && prioridade <= 5;
+        if (!valores_validos) return;
+
+        for (const tarefa of tarefas_selecionadas) {
+            tarefa.status = status;
+            tarefa.categoria = categoria;
+            tarefa.prioridade = prioridade;
+        }
+
+        input_nome_tarefa.value = "";
+        check_sim_alarme.checked = false;
+        input_alarme.value = "";
+        salvar_estado();
+        mostrar_tarefas();
+        atualizar_estado_formulario();
+        return;
+    }
 
     if (nome !== "") {
         if (nome_tarefa_duplicado(nome)) return;

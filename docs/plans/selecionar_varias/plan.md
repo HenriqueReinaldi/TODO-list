@@ -24,11 +24,11 @@ Use the shared Playwright setup, server, and `npm test` command defined in `docs
 - **Files:** Modify `frontend/main.js` and `frontend/index.html`; extend `frontend/tests/multiselect.spec.js` with editor-mode checks.
 - **Done check:** Run `npm test -- frontend/tests/multiselect.spec.js --grep "editor modes"`. Playwright checks zero, one, and multiple selections, verifies fields and messaging for each state, ensures prior single-task values are cleared in bulk mode, and confirms task names cannot be changed.
 
-### 4. Apply bulk edits immediately and guard single-task actions
+### 4. [x] Apply bulk edits on explicit save and guard single-task actions
 
-- **What:** In multi-selection mode, apply category, priority, or status changes immediately to every selected task, re-render, and retain selection. Ensure bulk handling cannot modify name, description, or alarms, including through programmatic field changes. Preserve the explicit Save flow for one selected task; restrict deletion to one selected task unless the UI explicitly defines otherwise.
+- **What:** In multi-selection mode, let the user choose category, priority, and status values for all selected tasks, but only commit those changes after clicking the Save button. Re-render and retain selection only after a successful save. Ensure bulk handling cannot modify name, description, or alarms, including through programmatic field changes. Preserve the explicit Save flow for one selected task; restrict deletion to one selected task unless the UI explicitly defines otherwise.
 - **Files:** Modify `frontend/main.js` and, if needed, `frontend/index.html`; extend `frontend/tests/multiselect.spec.js` with bulk-edit and single-edit tests.
-- **Done check:** Run `npm test -- frontend/tests/multiselect.spec.js --grep "bulk editing"`. Playwright starts with mixed selected-task values, changes each supported field, and verifies all selected tasks update immediately and remain selected. It verifies unsupported fields do not mutate tasks and single-task Save affects only that task.
+- **Done check:** Run `npm test -- frontend/tests/multiselect.spec.js --grep "bulk editing"`. Playwright starts with mixed selected-task values, changes each supported field, verifies the UI remains dirty until Save is clicked, and confirms all selected tasks update together only after the Save action. It verifies unsupported fields do not mutate tasks and single-task Save affects only that task.
 
 ### 5. Verify selection clearing and regression behavior
 

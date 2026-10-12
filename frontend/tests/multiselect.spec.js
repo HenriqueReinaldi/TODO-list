@@ -94,3 +94,56 @@ test("editor modes reflect zero, one, and multiple selections", async ({ page })
   await expect(page.locator("#input-nome-tarefa")).toBeEnabled();
   await expect(page.locator("#mensagem-edicao")).toBeHidden();
 });
+
+test("bulk editing waits for save and protects single-task actions", async ({ page }) => {
+  await page.goto("/");
+
+  await page.evaluate(() => {
+    quadros = [{
+      id: "board-1",
+      nome: "Board 1",
+      lista_de_tarefas: [
+        { id: "t1", nome: "Alpha", desc: "Primeiro", data_termino: "", prioridade: 1, categoria: "dev", status: "TODO", alarmes: [] },
+        { id: "t2", nome: "Beta", desc: "Segundo", data_termino: "", prioridade: 3, categoria: "qa", status: "DOING", alarmes: [] },
+      ],
+    }];
+    quadro_selecionado = quadros[0];
+    limpar_selecao();
+    mostrar_tarefas();
+  });
+
+  await page.locator("[data-tarefa-id='t1']").click();
+  await page.locator("[data-tarefa-id='t2']").click({ modifiers: ["Control"] });
+
+  await page.locator("#select-status").selectOption("DONE");
+  await page.locator("#input-categoria").fill("ops");
+  await page.locator("#input-prioridade").fill("5");
+
+  const estado_antes = await page.evaluate(() => quadros[0].lista_de_tarefas.map((t) => ({
+    id: t.id,
+    status: t.status,
+    categoria: t.categoria,
+    prioridade: t.prioridade,
+  })));
+  expect(estado_antes).toEqual([
+    { id: "t1", status: "TODO", categoria: "dev", prioridade: 1 },
+    { id: "t2", status: "DOING", categoria: "qa", prioridade: 3 },
+  ]);
+
+  await page.locator("#btn-salvar-adicionar").click();
+
+  const estado_depois = await page.evaluate(() => quadros[0].lista_de_tarefas.map((t) => ({
+    id: t.id,
+    status: t.status,
+    categoria: t.categoria,
+    prioridade: t.prioridade,
+  })));
+  expect(estado_depois).toEqual([
+    { id: "t1", status: "DONE", categoria: "ops", prioridade: 5 },
+    { id: "t2", status: "DONE", categoria: "ops", prioridade: 5 },
+  ]);
+
+  await page.locator("[data-tarefa-id='t1']").click();
+  await page.locator("#btn-deletar").click();
+  expect(await page.evaluate(() => contar_selecionadas())).toBe(0);
+});
